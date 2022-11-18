@@ -32,8 +32,8 @@ import (
 
 	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
 	mariadb "github.com/openstack-k8s-operators/galera-operator/pkg"
-	common "github.com/openstack-k8s-operators/lib-common/pkg/common"
-	helper "github.com/openstack-k8s-operators/lib-common/pkg/helper"
+	helper "github.com/openstack-k8s-operators/lib-common/modules/common/helper"
+	job "github.com/openstack-k8s-operators/lib-common/modules/common/job"
 )
 
 // MariaDBDatabaseReconciler reconciles a MariaDBDatabase object
@@ -137,7 +137,7 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 
 		dbDeleteHash := instance.Status.Hash[databasev1beta1.DbDeleteHash]
-		dbDeleteJob := common.NewJob(
+		dbDeleteJob := job.NewJob(
 			jobDef,
 			"deleteDB_"+instance.Name,
 			false,
@@ -187,7 +187,7 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, err
 	}
 	dbCreateHash := instance.Status.Hash[databasev1beta1.DbCreateHash]
-	dbCreateJob := common.NewJob(
+	dbCreateJob := job.NewJob(
 		jobDef,
 		databasev1beta1.DbCreateHash,
 		false,

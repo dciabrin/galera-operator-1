@@ -6,9 +6,7 @@ require (
 	github.com/go-logr/logr v1.2.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
-	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible // indirect
 	github.com/openstack-k8s-operators/galera-operator/api v0.0.0-00010101000000-000000000000
-	github.com/openstack-k8s-operators/lib-common v0.0.0-20220630111354-9f8383d4a2ea
 	k8s.io/api v0.24.4
 	k8s.io/apimachinery v0.24.4
 	k8s.io/client-go v0.24.4
@@ -16,7 +14,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
-require github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20220819100430-0319abfd42d9
+require github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20221115095652-2c390a9d20b4
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
