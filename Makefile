@@ -114,7 +114,7 @@ build: generate fmt vet ## Build manager binary.
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go -metrics-bind-address :8088
+	OPERATOR_TEMPLATES=templates/ go run ./main.go -metrics-bind-address :8088
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
@@ -122,7 +122,7 @@ docker-build: test ## Build docker image with the manager.
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	podman push ${IMG}
+	podman push --tls-verify=false ${IMG}
 
 ##@ Deployment
 
