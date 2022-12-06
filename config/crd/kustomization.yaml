@@ -3,8 +3,8 @@
 # It should be run by config/default
 resources:
 - bases/mariadb.openstack.org_galeras.yaml
-- bases/mariadb.openstack.org_mariadbs.yaml
-- bases/mariadb.openstack.org_mariadbdatabases.yaml
+# - bases/mariadb.openstack.org_mariadbs.yaml
+# - bases/mariadb.openstack.org_mariadbdatabases.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

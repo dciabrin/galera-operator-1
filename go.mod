@@ -16,7 +16,10 @@ require (
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
-require github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20221103175706-2c39582ce513
+require (
+	github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20221103175706-2c39582ce513
+	github.com/openstack-k8s-operators/mariadb-operator/api v0.0.0-20221128124656-71e59ad7384d
+)
 
 require (
 	cloud.google.com/go v0.81.0 // indirect

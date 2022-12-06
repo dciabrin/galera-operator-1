@@ -3,8 +3,8 @@ package mariadb
 import (
 	"strings"
 
-	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
 	common "github.com/openstack-k8s-operators/lib-common/pkg/common"
+	mariadbv1 "github.com/openstack-k8s-operators/mariadb-operator/api/v1beta1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ type dbCreateOptions struct {
 }
 
 // DbDatabaseJob -
-func DbDatabaseJob(database *databasev1beta1.MariaDBDatabase, databaseHostName string, databaseSecret string, containerImage string) (*batchv1.Job, error) {
+func DbDatabaseJob(database *mariadbv1.MariaDBDatabase, databaseHostName string, databaseSecret string, containerImage string) (*batchv1.Job, error) {
 
 	opts := dbCreateOptions{database.Spec.Name, databaseHostName, "root"}
 	dbCmd, err := common.ExecuteTemplateFile("database.sh", &opts)
@@ -81,7 +81,7 @@ func DbDatabaseJob(database *databasev1beta1.MariaDBDatabase, databaseHostName s
 }
 
 // DeleteDbDatabaseJob -
-func DeleteDbDatabaseJob(database *databasev1beta1.MariaDBDatabase, databaseHostName string, databaseSecret string, containerImage string) (*batchv1.Job, error) {
+func DeleteDbDatabaseJob(database *mariadbv1.MariaDBDatabase, databaseHostName string, databaseSecret string, containerImage string) (*batchv1.Job, error) {
 
 	opts := dbCreateOptions{database.Spec.Name, databaseHostName, "root"}
 	delCmd, err := common.ExecuteTemplateFile("delete_database.sh", &opts)

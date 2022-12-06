@@ -46,7 +46,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
+	galerav1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
 	mariadb "github.com/openstack-k8s-operators/galera-operator/pkg"
 )
 
@@ -95,7 +95,7 @@ func execInPod(r *GaleraReconciler, namespace string, pod string, container stri
 	return fun(&stdout, &stderr)
 }
 
-func findBestCandidate(status *databasev1beta1.GaleraStatus) string {
+func findBestCandidate(status *galerav1.GaleraStatus) string {
 	sortednodes := []string{}
 	for node := range status.Attributes {
 		sortednodes = append(sortednodes, node)
@@ -115,7 +115,7 @@ func findBestCandidate(status *databasev1beta1.GaleraStatus) string {
 	return bestnode //"galera-0"
 }
 
-func buildGcommURI(instance *databasev1beta1.Galera) string {
+func buildGcommURI(instance *galerav1.Galera) string {
 	size := int(instance.Spec.Size)
 	basename := instance.Name + "-galera"
 	res := []string{}
@@ -158,7 +158,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	log := r.Log.WithValues("galera", req.NamespacedName)
 
 	// Fetch the Galera instance
-	instance := &databasev1beta1.Galera{}
+	instance := &galerav1.Galera{}
 	err := r.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -370,7 +370,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if len(podNames) == 0 {
 		log.Info("No pods running, cluster is stopped")
 		instance.Status.Bootstrapped = false
-		instance.Status.Attributes = make(map[string]databasev1beta1.GaleraAttributes)
+		instance.Status.Attributes = make(map[string]galerav1.GaleraAttributes)
 		err := r.Status().Update(ctx, instance)
 		if err != nil {
 			log.Error(err, "Failed to update Galera status")
@@ -420,7 +420,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if nodesDiffer {
 		log.Info("New pod config detected, wait for pod availability before probing", "podNames", podNames, "knownNodes", knownNodes)
 		if instance.Status.Attributes == nil {
-			instance.Status.Attributes = make(map[string]databasev1beta1.GaleraAttributes)
+			instance.Status.Attributes = make(map[string]galerav1.GaleraAttributes)
 		}
 		for _, pod := range podList.Items {
 			if _, k := instance.Status.Attributes[pod.Name]; !k {
@@ -430,7 +430,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 						[]string{"/bin/bash", "/var/lib/operator-scripts/detect_last_commit.sh"},
 						func(stdout *bytes.Buffer, stderr *bytes.Buffer) error {
 							seqno := strings.TrimSuffix(stdout.String(), "\n")
-							attr := databasev1beta1.GaleraAttributes{
+							attr := galerav1.GaleraAttributes{
 								Seqno: seqno,
 							}
 							instance.Status.Attributes[pod.Name] = attr
@@ -532,7 +532,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *GaleraReconciler) generateConfigMaps(
 	ctx context.Context,
 	h *helper.Helper,
-	instance *databasev1beta1.Galera,
+	instance *galerav1.Galera,
 	envVars *map[string]env.Setter,
 ) error {
 	// cmLabels := labels.GetLabels(instance, labels.GetGroupLabel(mariadb.ServiceName), map[string]string{})
@@ -591,7 +591,9 @@ func getPodNames(pods []corev1.Pod) []string {
 func (r *GaleraReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.config = mgr.GetConfig()
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&databasev1beta1.Galera{}).
+		For(&galerav1.Galera{}).
 		Owns(&appsv1.StatefulSet{}).
+		Owns(&corev1.Service{}).
+		Owns(&corev1.ConfigMap{}).
 		Complete(r)
 }

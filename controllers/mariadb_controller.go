@@ -20,13 +20,12 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	corev1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
+	mariadbv1 "github.com/openstack-k8s-operators/mariadb-operator/api/v1beta1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -72,7 +71,7 @@ func (r *MariaDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log := r.Log.WithValues("mariadb", req.NamespacedName)
 
 	// Fetch the MariaDB instance
-	instance := &databasev1beta1.MariaDB{}
+	instance := &mariadbv1.MariaDB{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if k8s_errors.IsNotFound(err) {
@@ -95,10 +94,6 @@ func (r *MariaDBReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 // SetupWithManager -
 func (r *MariaDBReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&databasev1beta1.MariaDB{}).
-		Owns(&corev1.Service{}).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&corev1.PersistentVolumeClaim{}).
-		Owns(&corev1.Pod{}).
+		For(&mariadbv1.MariaDB{}).
 		Complete(r)
 }

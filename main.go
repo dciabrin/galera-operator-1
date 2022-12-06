@@ -27,15 +27,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
+	galerav1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
+	"github.com/openstack-k8s-operators/galera-operator/controllers"
+	mariadbv1 "github.com/openstack-k8s-operators/mariadb-operator/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
-	"github.com/openstack-k8s-operators/galera-operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -47,7 +47,8 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(databasev1beta1.AddToScheme(scheme))
+	utilruntime.Must(mariadbv1.AddToScheme(scheme))
+	utilruntime.Must(galerav1.AddToScheme(scheme))
 	// utilruntime.Must(mariadbv1beta1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }

@@ -30,10 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	databasev1beta1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
 	mariadb "github.com/openstack-k8s-operators/galera-operator/pkg"
 	common "github.com/openstack-k8s-operators/lib-common/pkg/common"
 	helper "github.com/openstack-k8s-operators/lib-common/pkg/helper"
+	mariadbv1 "github.com/openstack-k8s-operators/mariadb-operator/api/v1beta1"
 )
 
 // MariaDBDatabaseReconciler reconciles a MariaDBDatabase object
@@ -75,14 +75,14 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	_ = r.Log.WithValues("mariadbdatabase", req.NamespacedName)
 
 	// Fetch the MariaDBDatabase instance
-	instance := &databasev1beta1.MariaDBDatabase{}
+	instance := &mariadbv1.MariaDBDatabase{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Fetch the MariaDB instance from which we'll pull the credentials
-	db := &databasev1beta1.MariaDB{
+	db := &mariadbv1.MariaDB{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.ObjectMeta.Labels["dbName"],
 			Namespace: req.Namespace,
@@ -136,7 +136,7 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			return ctrl.Result{}, err
 		}
 
-		dbDeleteHash := instance.Status.Hash[databasev1beta1.DbDeleteHash]
+		dbDeleteHash := instance.Status.Hash[mariadbv1.DbDeleteHash]
 		dbDeleteJob := common.NewJob(
 			jobDef,
 			"deleteDB_"+instance.Name,
@@ -158,11 +158,11 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			if instance.Status.Hash == nil {
 				instance.Status.Hash = make(map[string]string)
 			}
-			instance.Status.Hash[databasev1beta1.DbDeleteHash] = dbDeleteJob.GetHash()
+			instance.Status.Hash[mariadbv1.DbDeleteHash] = dbDeleteJob.GetHash()
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
 				return ctrl.Result{}, err
 			}
-			r.Log.Info(fmt.Sprintf("Job %s hash added - %s", jobDef.Name, instance.Status.Hash[databasev1beta1.DbDeleteHash]))
+			r.Log.Info(fmt.Sprintf("Job %s hash added - %s", jobDef.Name, instance.Status.Hash[mariadbv1.DbDeleteHash]))
 		}
 
 		// r.Log.Info(fmt.Sprintf("3 remove finalizer"))
@@ -186,10 +186,10 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	dbCreateHash := instance.Status.Hash[databasev1beta1.DbCreateHash]
+	dbCreateHash := instance.Status.Hash[mariadbv1.DbCreateHash]
 	dbCreateJob := common.NewJob(
 		jobDef,
-		databasev1beta1.DbCreateHash,
+		mariadbv1.DbCreateHash,
 		false,
 		5,
 		dbCreateHash,
@@ -208,11 +208,11 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		if instance.Status.Hash == nil {
 			instance.Status.Hash = make(map[string]string)
 		}
-		instance.Status.Hash[databasev1beta1.DbCreateHash] = dbCreateJob.GetHash()
+		instance.Status.Hash[mariadbv1.DbCreateHash] = dbCreateJob.GetHash()
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return ctrl.Result{}, err
 		}
-		r.Log.Info(fmt.Sprintf("Job %s hash added - %s", jobDef.Name, instance.Status.Hash[databasev1beta1.DbCreateHash]))
+		r.Log.Info(fmt.Sprintf("Job %s hash added - %s", jobDef.Name, instance.Status.Hash[mariadbv1.DbCreateHash]))
 	}
 
 	// database creation finished... okay to set to completed
@@ -223,7 +223,7 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	return ctrl.Result{}, nil
 }
 
-func (r *MariaDBDatabaseReconciler) setCompleted(ctx context.Context, db *databasev1beta1.MariaDBDatabase) error {
+func (r *MariaDBDatabaseReconciler) setCompleted(ctx context.Context, db *mariadbv1.MariaDBDatabase) error {
 
 	if !db.Status.Completed {
 		db.Status.Completed = true
@@ -237,6 +237,6 @@ func (r *MariaDBDatabaseReconciler) setCompleted(ctx context.Context, db *databa
 // SetupWithManager -
 func (r *MariaDBDatabaseReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&databasev1beta1.MariaDBDatabase{}).
+		For(&mariadbv1.MariaDBDatabase{}).
 		Complete(r)
 }

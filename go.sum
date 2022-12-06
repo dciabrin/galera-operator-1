@@ -406,6 +406,8 @@ github.com/openstack-k8s-operators/lib-common v0.0.0-20220630111354-9f8383d4a2ea
 github.com/openstack-k8s-operators/lib-common v0.0.0-20220630111354-9f8383d4a2ea/go.mod h1:sjH9zj16njdfy4PedlQGbJlwu9EXM2ugHhPA/l0zddM=
 github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20221103175706-2c39582ce513 h1:PSXOLFTskoG9R/YR4Pg5AOJYS3CEnFbZ2yVdrk9xOE4=
 github.com/openstack-k8s-operators/lib-common/modules/common v0.0.0-20221103175706-2c39582ce513/go.mod h1:KWqK7l2ej+rIYngoNUrxE2YjKGlRAAgJXXM0uU2R6XY=
+github.com/openstack-k8s-operators/mariadb-operator/api v0.0.0-20221128124656-71e59ad7384d h1:VPCf4ZO4k3zyE9xscKx5Q8dQNxzaIJMVRHORjCWvDZY=
+github.com/openstack-k8s-operators/mariadb-operator/api v0.0.0-20221128124656-71e59ad7384d/go.mod h1:HiEKXmDSJ6Gl+pN7kK5CX1sgOjrxybux4Ob5pdUim1M=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
