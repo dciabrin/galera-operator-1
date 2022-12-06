@@ -40,6 +40,7 @@ func Service(m *databasev1beta1.Galera) *corev1.Service {
 			Namespace: m.Namespace,
 			Labels: map[string]string{
 				"app": "mariadb",
+				"cr":  "mariadb-" + m.Name,
 			},
 		},
 		Spec: corev1.ServiceSpec{

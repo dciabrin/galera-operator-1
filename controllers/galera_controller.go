@@ -357,7 +357,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	podList := &corev1.PodList{}
 	listOpts := []client.ListOption{
 		client.InNamespace(instance.Namespace),
-		client.MatchingLabels(mariadb.GetLabels(instance.Name)),
+		client.MatchingLabels(mariadb.StatefulSetLabels(instance.Name)),
 	}
 	if err = r.List(ctx, podList, listOpts...); err != nil {
 		log.Error(err, "Failed to list pods", "Galera.Namespace", instance.Namespace, "Galera.Name", instance.Name)
@@ -535,7 +535,6 @@ func (r *GaleraReconciler) generateConfigMaps(
 	instance *galerav1.Galera,
 	envVars *map[string]env.Setter,
 ) error {
-	// cmLabels := labels.GetLabels(instance, labels.GetGroupLabel(mariadb.ServiceName), map[string]string{})
 	templateParameters := make(map[string]interface{})
 	customData := make(map[string]string)
 

@@ -12,6 +12,7 @@ func MariaDBShim(m *galerav1.Galera) *mariadbv1.MariaDB {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      m.Name,
 			Namespace: m.Namespace,
+			Labels:    GetLabels(m.Name),
 		},
 		Spec: mariadbv1.MariaDBSpec{
 			Secret:         m.Spec.Secret,

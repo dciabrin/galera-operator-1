@@ -4,6 +4,15 @@ package mariadb
 func GetLabels(name string) map[string]string {
 	return map[string]string{
 		"owner":     "galera-operator",
+		"app":       "mariadb",
+		"cr":        "mariadb-" + name,
+		"galera_cr": name,
+	}
+}
+
+func StatefulSetLabels(name string) map[string]string {
+	return map[string]string{
+		"owner":     "galera-operator",
 		"app":       StatefulSetName(name),
 		"cr":        "mariadb-" + name,
 		"galera_cr": name,

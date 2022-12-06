@@ -10,7 +10,7 @@ import (
 
 // StatefulSet returns a StatefulSet object for the galera cluster
 func StatefulSet(g *databasev1beta1.Galera) *appsv1.StatefulSet {
-	ls := GetLabels(g.Name)
+	ls := StatefulSetLabels(g.Name)
 	name := StatefulSetName(g.Name)
 	replicas := g.Spec.Size
 	runAsUser := int64(0)
