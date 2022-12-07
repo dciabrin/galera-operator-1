@@ -30,6 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	galerav1 "github.com/openstack-k8s-operators/galera-operator/api/v1beta1"
 	mariadb "github.com/openstack-k8s-operators/galera-operator/pkg"
 	common "github.com/openstack-k8s-operators/lib-common/pkg/common"
 	helper "github.com/openstack-k8s-operators/lib-common/pkg/helper"
@@ -68,6 +69,7 @@ func (r *MariaDBDatabaseReconciler) GetScheme() *runtime.Scheme {
 // +kubebuilder:rbac:groups=mariadb.openstack.org,resources=mariadbdatabases/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=mariadb.openstack.org,resources=mariadbdatabases/finalizers,verbs=update
 // +kubebuilder:rbac:groups=mariadb.openstack.org,resources=mariadbs/status,verbs=get;list
+// +kubebuilder:rbac:groups=mariadb.openstack.org,resources=galeras/status,verbs=get;list
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;delete;patch
 
 // Reconcile reconcile mariadbdatabase API requests
@@ -81,21 +83,53 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Fetch the MariaDB instance from which we'll pull the credentials
-	db := &mariadbv1.MariaDB{
+	// Note: this will go away when we transition to galera as the db
+	var isGalera bool
+	var dbgalera *galerav1.Galera
+	var dbmariadb *mariadbv1.MariaDB
+	var dbName string
+	var dbSecret string
+	var dbContainerImage string
+	// Fetch the Galera instance from which we'll pull the credentials
+	dbgalera = &galerav1.Galera{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      instance.ObjectMeta.Labels["dbName"],
 			Namespace: req.Namespace,
 		},
 	}
-	objectKey := client.ObjectKeyFromObject(db)
-	err = r.Client.Get(ctx, objectKey, db)
-	if err != nil {
-		if !k8s_errors.IsNotFound(err) {
+	objectKey := client.ObjectKeyFromObject(dbgalera)
+	err = r.Client.Get(ctx, objectKey, dbgalera)
+	if err != nil && !k8s_errors.IsNotFound(err) {
+		return ctrl.Result{}, err
+	} else {
+		isGalera = !k8s_errors.IsNotFound(err)
+	}
+
+	// Fetch the MariaDB instance from which we'll pull the credentials
+	if !isGalera {
+		dbmariadb = &mariadbv1.MariaDB{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      instance.ObjectMeta.Labels["dbName"],
+				Namespace: req.Namespace,
+			},
+		}
+		objectKey = client.ObjectKeyFromObject(dbmariadb)
+		err = r.Client.Get(ctx, objectKey, dbmariadb)
+		if err != nil && !k8s_errors.IsNotFound(err) {
 			return ctrl.Result{}, err
 		}
+	}
+
+	if k8s_errors.IsNotFound(err) {
 		return ctrl.Result{RequeueAfter: time.Second * 10}, nil
 	}
+
+	if isGalera {
+		dbName, dbSecret, dbContainerImage = dbgalera.Name, dbgalera.Spec.Secret, dbgalera.Spec.ContainerImage
+	} else {
+		dbName, dbSecret, dbContainerImage = dbmariadb.Name, dbmariadb.Spec.Secret, dbmariadb.Spec.ContainerImage
+	}
+
 	helper, err := helper.NewHelper(
 		instance,
 		r.Client,
@@ -131,7 +165,7 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		// r.Log.Info(fmt.Sprintf("2 delete db"))
 		// 2. delete the database
 		// r.Log.Info(fmt.Sprintf("CR %s delete, running DB delete job", instance.Name))
-		jobDef, err := mariadb.DeleteDbDatabaseJob(instance, db.Name, db.Spec.Secret, db.Spec.ContainerImage)
+		jobDef, err := mariadb.DeleteDbDatabaseJob(instance, dbName, dbSecret, dbContainerImage)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -176,13 +210,18 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{}, nil
 	}
 
-	if db.Status.DbInitHash == "" {
-		r.Log.Info("DB initialization not complete. Requeue...", "DB", db, "Status", db.Status)
+	if isGalera {
+		if !dbgalera.Status.Bootstrapped {
+			r.Log.Info("DB initialization not complete. Requeue...", "Status", dbgalera.Status)
+			return ctrl.Result{RequeueAfter: time.Second * 10}, err
+		}
+	} else if dbmariadb.Status.DbInitHash == "" {
+		r.Log.Info("DB initialization not complete. Requeue...", "DB", dbmariadb, "Status", dbmariadb.Status)
 		return ctrl.Result{RequeueAfter: time.Second * 10}, err
 	}
 
 	// Define a new Job object (hostname, password, containerImage)
-	jobDef, err := mariadb.DbDatabaseJob(instance, db.Name, db.Spec.Secret, db.Spec.ContainerImage)
+	jobDef, err := mariadb.DbDatabaseJob(instance, dbName, dbSecret, dbContainerImage)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

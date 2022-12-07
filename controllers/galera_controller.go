@@ -227,26 +227,10 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}()
 
-	shim := mariadb.MariaDBShim(instance)
-	op, err := controllerutil.CreateOrPatch(ctx, r.Client, shim, func() error {
-		err := controllerutil.SetOwnerReference(instance, shim, r.Client.Scheme())
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	if op != controllerutil.OperationResultNone {
-		r.Log.Info(fmt.Sprintf("%s %s database shim %s - operation: %s", instance.Kind, instance.Name, shim.Name, string(op)))
-		return ctrl.Result{RequeueAfter: time.Second * 5}, err
-	}
-
 	// Endpoints
 	endpoints := mariadb.Endpoints(instance)
 	if endpoints != nil {
-		op, err = controllerutil.CreateOrPatch(ctx, r.Client, endpoints, func() error {
+		op, err := controllerutil.CreateOrPatch(ctx, r.Client, endpoints, func() error {
 			err := controllerutil.SetControllerReference(instance, endpoints, r.Scheme)
 			if err != nil {
 				return err
@@ -271,7 +255,7 @@ func (r *GaleraReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	instance.Status.Conditions.MarkTrue(condition.ExposeServiceReadyCondition, condition.ExposeServiceReadyMessage)
 
 	statefulset := mariadb.StatefulSet(instance)
-	op, err = controllerutil.CreateOrPatch(ctx, r.Client, statefulset, func() error {
+	op, err := controllerutil.CreateOrPatch(ctx, r.Client, statefulset, func() error {
 		err := controllerutil.SetOwnerReference(instance, statefulset, r.Client.Scheme())
 		if err != nil {
 			return err
