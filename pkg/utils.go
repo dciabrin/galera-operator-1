@@ -10,6 +10,7 @@ func GetLabels(name string) map[string]string {
 	}
 }
 
+// StatefulSetLabels - labels that must match service labels
 func StatefulSetLabels(name string) map[string]string {
 	return map[string]string{
 		"owner":     "galera-operator",

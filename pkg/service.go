@@ -6,7 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Headless service to give pods connectivity via DNS
+// HeadlessService - service to give galera pods connectivity via DNS
 func HeadlessService(m *databasev1beta1.Galera) *corev1.Service {
 	name := ResourceName(m.Name)
 	dep := &corev1.Service{
@@ -31,7 +31,7 @@ func HeadlessService(m *databasev1beta1.Galera) *corev1.Service {
 	return dep
 }
 
-// The MySQL Service provided by the Galera cluster
+// Service - The MySQL Service provided by the Galera cluster
 func Service(m *databasev1beta1.Galera) *corev1.Service {
 	res := ResourceName(m.Name)
 	dep := &corev1.Service{

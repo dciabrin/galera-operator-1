@@ -101,12 +101,11 @@ func (r *MariaDBDatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	err = r.Client.Get(ctx, objectKey, dbgalera)
 	if err != nil && !k8s_errors.IsNotFound(err) {
 		return ctrl.Result{}, err
-	} else {
-		isGalera = !k8s_errors.IsNotFound(err)
 	}
 
-	// Fetch the MariaDB instance from which we'll pull the credentials
+	isGalera = err == nil
 	if !isGalera {
+		// Fetch the MariaDB instance from which we'll pull the credentials
 		dbmariadb = &mariadbv1.MariaDB{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      instance.ObjectMeta.Labels["dbName"],
